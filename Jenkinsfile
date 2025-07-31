@@ -16,6 +16,7 @@ pipeline {
                 git branch: 'main',
                     credentialsId: 'github-credentials' ,
                     url: 'https://github.com/Saradhasailesh/three-tier-app.git'
+                    echo 'completed cloning'
             }  
         }     
 
