@@ -11,14 +11,14 @@ pipeline {
     }
 
     stages {
-        stage ('clone') {
-            steps{
-                git branch: 'main',
-                    credentialsId: 'github-credentials' ,
-                    url: 'https://github.com/Saradhasailesh/three-tier-app.git'
-                    echo 'completed cloning'
-            }  
-        }     
+        // stage ('clone') {
+        //     steps{
+        //         git branch: 'main',
+        //             credentialsId: 'github-credentials' ,
+        //             url: 'https://github.com/Saradhasailesh/three-tier-app.git'
+        //             echo 'completed cloning'
+        //     }  
+        // }     
 
         stage ('Install AWS CLI') {
             steps{
