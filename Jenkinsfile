@@ -1,5 +1,5 @@
 pipeline {
-    agent wsl
+    agent any
 
     environment {
         IMAGE_TAG = "v${BUILD_ID}"
