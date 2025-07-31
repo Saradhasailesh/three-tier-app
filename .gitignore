@@ -1,0 +1,22 @@
+# Terraform state files (contain sensitive data)
+terraform.tfstate
+terraform.tfstate.backup
+
+# Terraform cache and provider binaries
+.terraform/
+.terraform.lock.hcl
+
+# Crash logs from Terraform
+crash.log
+
+# Override files (personal or environment-specific)
+*.tfvars
+*.tfvars.json
+
+# Ignore Terraform plan output files
+*.tfplan
+
+# Ignore any temporary or local files
+*.log
+*.bak
+*.pdf
