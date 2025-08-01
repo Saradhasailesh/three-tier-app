@@ -22,12 +22,13 @@ pipeline {
                 // Install AWS CLI v2    
                 sh '''
                     if ! command -v aws &> /dev/null; then
-                        echo "AWS CLI node found. Installing..."
-                        curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip'
+                        echo "AWS CLI not found. Installing..."
+                        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
                         unzip awscliv2.zip
                         sudo ./aws/install
                     else
-                        echo "AWS CLI already installed."    
+                        echo "AWS CLI already installed."  
+                    fi  
                     '''
                 // Install Docker CE (official method)    
                 sh  ''' 
@@ -46,7 +47,8 @@ pipeline {
                         sudo apt-get update
                         sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
                     else 
-                        echo "Dcoker is already installed."    
+                        echo "Dcoker is already installed." 
+                    fi       
                     '''    
             }
         }   
