@@ -13,16 +13,20 @@ pipeline {
     stages {
         stage ('Install AWS CLI') {
             steps{
+                // Update and install curl, unzip
                 sh '''
                     sudo apt update
                     sudo apt install -y curl unzip
                     '''
+                // Install AWS CLI v2    
                 sh '''
                     curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip'
                     unzip awscliv2.zip
                     sudo ./aws/install
                     '''
-                sh "sudo apt-get install ca-certificates curl
+                // Install Docker CE (official method)    
+                sh  ''' 
+                    sudo apt-get install ca-certificates curl
                     sudo install -m 0755 -d /etc/apt/keyrings
                     sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
                     sudo chmod a+r /etc/apt/keyrings/docker.asc
