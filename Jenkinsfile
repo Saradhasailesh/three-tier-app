@@ -22,7 +22,7 @@ pipeline {
                 // Install AWS CLI v2    
                 sh '''
                     if ! command -v aws &> /dev/null; then
-                        echo "AWS CLI node found. Installing...
+                        echo "AWS CLI node found. Installing..."
                         curl 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o 'awscliv2.zip'
                         unzip awscliv2.zip
                         sudo ./aws/install
