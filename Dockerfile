@@ -3,7 +3,7 @@ FROM amazon/aws-cli:latest
 ENV TERRAFORM_VERSION=1.6.6
 
 RUN yum update && yum install -y wget unzip git && \
-    wget --version \
+    wget --version && \
 
     # terraform
     wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
