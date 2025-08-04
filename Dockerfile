@@ -2,7 +2,7 @@ FROM amazon/aws-cli:latest
 
 ENV TERRAFORM_VERSION=1.12.2
 
-RUN apt-get update && apt-get install -y wget unzip git && \
+RUN yum update && yum install -y wget unzip git && \
     wget --version \
 
     # terraform
@@ -20,6 +20,6 @@ RUN apt-get update && apt-get install -y wget unzip git && \
     tfsec --version && \
     
     # Clean up
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    yum clean && rm -rf /var/lib/apt/lists/*
 
 CMD ["/bin/bash"]    
