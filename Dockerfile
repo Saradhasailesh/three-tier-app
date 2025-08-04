@@ -14,9 +14,7 @@ RUN yum update && yum install -y wget unzip git && \
     rm -rf terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
 
     # tfsec
-    curl -L "$(curl -s https://api.github.com/repos/tfsec/tfsec/releases/latest | grep -o -E "https://.+tfsec-linux-amd64")" -o tfsec && \
-    chmod +x tfsec && \
-    mv tfsec /usr/local/bin && \
+    curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash && \
     tfsec --version && \
     
     # Clean up
