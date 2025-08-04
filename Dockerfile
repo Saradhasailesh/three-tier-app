@@ -18,6 +18,6 @@ RUN yum update && yum install -y wget unzip git && \
     tfsec --version && \
     
     # Clean up
-    yum clean && rm -rf /var/lib/apt/lists/*
+    yum clean && rm -rf /var/cache/yum
 
 CMD ["/bin/bash"]    
