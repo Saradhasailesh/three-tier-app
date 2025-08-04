@@ -1,6 +1,6 @@
 FROM amazon/aws-cli:latest
 
-ENV TERRAFORM_VERSION=1.12.2
+ENV TERRAFORM_VERSION=1.6.6
 
 RUN yum update && yum install -y wget unzip git && \
     wget --version \
