@@ -2,10 +2,11 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_TAG = "${BUILD_ID}"
+        BUILD_TIMESTAMP = "${new Date().format('yyyyMMdd-HHmmss')}"
+        IMAGE_TAG = "${BUILD_TIMESTAMP}"
         AWS_REGION = credentials('AWS_REGION')
         AWS_ACCOUNT_ID = credentials('AWS_ACCOUNT_ID')
-        IMAGE_NAME = "three-tier-app-1"
+        IMAGE_NAME = "three-tier-app"
         ECR_REGISTRY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
         FULL_IMAGE_URI = "${ECR_REGISTRY_URI}/demo/${IMAGE_NAME}:${IMAGE_TAG}"
     }
