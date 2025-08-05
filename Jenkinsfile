@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_TAG = "v${BUILD_ID}"
+        IMAGE_TAG = "${BUILD_ID}"
         AWS_REGION = credentials('AWS_REGION')
         AWS_ACCOUNT_ID = credentials('AWS_ACCOUNT_ID')
         IMAGE_NAME = "three-tier-app"
