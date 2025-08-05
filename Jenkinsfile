@@ -5,7 +5,7 @@ pipeline {
         IMAGE_TAG = "${BUILD_ID}"
         AWS_REGION = credentials('AWS_REGION')
         AWS_ACCOUNT_ID = credentials('AWS_ACCOUNT_ID')
-        IMAGE_NAME = "three-tier-app"
+        IMAGE_NAME = "three-tier-app-1"
         ECR_REGISTRY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
         FULL_IMAGE_URI = "${ECR_REGISTRY_URI}/demo/${IMAGE_NAME}:${IMAGE_TAG}"
     }
