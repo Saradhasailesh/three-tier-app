@@ -104,7 +104,7 @@ pipeline {
                     """
                     }
 
-                    # Archive 
+                    // Archive 
                     archiveArtifacts artifacts: 'trivy-report.txt',  fingerprint: true
                     archiveArtifacts artifacts: 'tfplan.out', fingerprint: true
                     
@@ -125,7 +125,7 @@ pipeline {
                             terraform plan -var-file=${TF_FILE} -out=tfplan.out
                             terraform show tfplan.out
                         """
-                        # Manual approval
+                        // Manual approval
                         script {
                             def userInput = input(
                                 id:'ApproveApply', message:'Do you want to APPLY these Terraform changes?',
