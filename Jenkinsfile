@@ -62,7 +62,7 @@ pipeline {
                     # terraform
                     wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip &&
                     echo $PATH && 
-                    unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin/ &&
+                    unzip -o -q terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin/ &&
                     ls -l /usr/local/bin/ && 
                     terraform -version && 
                     rm -rf terraform_${TERRAFORM_VERSION}_linux_amd64.zip &&
