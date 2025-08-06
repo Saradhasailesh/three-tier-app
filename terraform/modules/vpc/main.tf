@@ -22,11 +22,13 @@ resource "aws_subnet" "private_subnet" {
 
 
 resource "aws_subnet" "public_subnet" {
-  vpc_id     = aws_vpc.demo_vpc.id
-  cidr_block = "10.0.101.0/24"
+  count             = length(var.public_subnet_cidrs)
+  vpc_id            = aws_vpc.demo_vpc.id
+  cidr_block        = element(var.public_subnet_cidrs, count.index)
+  availability_zone = data.aws_availability_zones.available.names[count.index]
 
   tags = {
-    Name = "public_subnet"
+    Name = "public_subnet-${count.index + 1}"
   }
 }
 
@@ -73,9 +75,9 @@ resource "aws_security_group" "allow_http_ssh" {
   dynamic "ingress" {
     for_each = var.ingress_ports
     content {
-      from_port = ingress.value
-      to_port = ingress.value
-      protocol = "tcp"
+      from_port   = ingress.value
+      to_port     = ingress.value
+      protocol    = "tcp"
       cidr_blocks = ["0.0.0.0/0"]
     }
   }
@@ -102,7 +104,7 @@ resource "aws_eip" "nat_eip" {
 
 resource "aws_nat_gateway" "nat" {
   allocation_id = aws_eip.nat_eip.id
-  subnet_id     = aws_subnet.public_subnet.id
+  subnet_id     = aws_subnet.public_subnet[0].id
 }
 
 resource "aws_route_table" "rt_demo" {
@@ -130,7 +132,8 @@ resource "aws_route_table_association" "rt_association_private" {
 
 
 resource "aws_route_table_association" "rt_association_public" {
-  subnet_id      = aws_subnet.public_subnet.id
+  count          = length(var.public_subnet_cidrs)
+  subnet_id      = element(aws_subnet.public_subnet[*].id, count.index)
   route_table_id = aws_route_table.rt_demo.id
 }
 

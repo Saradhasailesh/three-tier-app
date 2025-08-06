@@ -18,7 +18,7 @@ module "loadbalancer" {
 
 }
 
-module "ec2" { 
+module "ec2" {
   source             = "./modules/ec2"
   ami                = var.ami
   region             = var.region
@@ -28,6 +28,6 @@ module "ec2" {
   private_subnet_id  = module.vpc.private_subnet_id
   public_subnet_id   = module.vpc.public_subnet_id
   security_group_ids = [module.vpc.allow_http, module.vpc.allow_http_ssh, module.vpc.allow_ssh]
-  depends_on = [module.vpc]
+  depends_on         = [module.vpc]
 }
 

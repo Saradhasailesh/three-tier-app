@@ -1,5 +1,5 @@
 variable "security_group_ids" {
- type = list(string)
+  type = list(string)
 }
 
 
@@ -8,7 +8,7 @@ variable "private_subnet_id" {
 }
 
 variable "public_subnet_id" {
-  type = string
+  type = list(string)
 }
 
 variable "region" {

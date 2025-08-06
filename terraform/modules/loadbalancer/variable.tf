@@ -3,7 +3,7 @@ variable "security_group_ids" {
 }
 
 variable "public_subnet_id" {
-  type = string
+  type = list(string)
 }
 
 variable "app_server_ids" {
