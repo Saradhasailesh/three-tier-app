@@ -82,28 +82,29 @@ pipeline {
             }
             steps{
               dir("${TERRAFORM_DIR}") {
-                withCredentials([file(credentialsId: 'TF_FILE', variable: 'TF_FILE')]) {  
-                  sh """      
-                    pwd
-                    ls -l
+                withAWS(credentials:'AWS_credentials', region: "${AWS_REGION}"){ 
+                    withCredentials([file(credentialsId: 'TF_FILE', variable: 'TF_FILE')]) {  
+                    sh """      
+                        pwd
+                        ls -l
 
-                    # init
-                    terraform init
+                        # init
+                        terraform init
 
-                    # format
-                    terraform fmt
+                        # format
+                        terraform fmt
 
-                    # validate
-                    terraform validate
+                        # validate
+                        terraform validate
 
-                    trivy config ./ > trivy-report.txt || true
+                        trivy config ./ > trivy-report.txt || true
 
-                    # plan
+                        # plan
 
-                    terraform plan -var-file=${TF_FILE} -out=tfplan.out
-                    """
+                        terraform plan -var-file=${TF_FILE} -out=tfplan.out
+                        """
+                        }
                     }
-
                     // Archive 
                     archiveArtifacts artifacts: 'trivy-report.txt',  fingerprint: true
                     archiveArtifacts artifacts: 'tfplan.out', fingerprint: true
@@ -117,29 +118,31 @@ pipeline {
             }
             steps {
                 dir("${TERRAFORM_DIR}") {
-                    withCredentials([file(credentialsId: 'TF_FILE', variable: 'TF_FILE')]) { 
-                        sh """
-                            terraform init
-                            terraform fmt
-                            terraform validate
-                            terraform plan -var-file=${TF_FILE} -out=tfplan.out
-                            terraform show tfplan.out
-                        """
-                        // Manual approval
-                        script {
-                            def userInput = input(
-                                id:'ApproveApply', message:'Do you want to APPLY these Terraform changes?',
-                                parameters: [
-                                    choice(choices: ['Apply', 'Cancel'], description: 'Choose what to do', name:'action')
-                                ]
-                            )
-                            if(userInput == 'Apply'){
-                                sh 'terraform apply --auto-approve tfplan.out'
-                            } else {
-                                sh 'echo "Terraform apply cancelled by user."'
-                            }
+                    withAWS(credentials:'AWS_credentials', region: "${AWS_REGION}"){
+                        withCredentials([file(credentialsId: 'TF_FILE', variable: 'TF_FILE')]) { 
+                            sh """
+                                terraform init
+                                terraform fmt
+                                terraform validate
+                                terraform plan -var-file=${TF_FILE} -out=tfplan.out
+                                terraform show tfplan.out
+                            """
+                            // Manual approval
+                            script {
+                                def userInput = input(
+                                    id:'ApproveApply', message:'Do you want to APPLY these Terraform changes?',
+                                    parameters: [
+                                        choice(choices: ['Apply', 'Cancel'], description: 'Choose what to do', name:'action')
+                                    ]
+                                )
+                                if(userInput == 'Apply'){
+                                    sh 'terraform apply --auto-approve tfplan.out'
+                                } else {
+                                    sh 'echo "Terraform apply cancelled by user."'
+                                }
 
-                        }
+                            }
+                        }                    
                     }    
                      
                 }
@@ -152,21 +155,23 @@ pipeline {
             }
             steps{
                 dir("${TERRAFORM_DIR}") {
-                    withCredentials([file(credentialsId: 'TF_FILE', variable: 'TF_FILE')]) { 
-                        script {
-                            def userInput = input(
-                                id: 'Destroy Infra', message: 'Do you want to DESTROY all the resources?',
-                                parameters: [
-                                    choice(choices: ['Destroy', 'Cancel'], description: 'Choose what to do', name: 'action')
-                                ]
-                            )
-                            if (userInput == 'Destroy') {
-                                sh 'terraform destroy -var-file=${TF_FILE} --auto-approve'
-                            } else {
-                                sh 'echo "Terrafrom destroy cancelled by user."'
+                    withAWS(credentials:'AWS_credentials', region: "${AWS_REGION}"){
+                        withCredentials([file(credentialsId: 'TF_FILE', variable: 'TF_FILE')]) { 
+                            script {
+                                def userInput = input(
+                                    id: 'Destroy Infra', message: 'Do you want to DESTROY all the resources?',
+                                    parameters: [
+                                        choice(choices: ['Destroy', 'Cancel'], description: 'Choose what to do', name: 'action')
+                                    ]
+                                )
+                                if (userInput == 'Destroy') {
+                                    sh 'terraform destroy -var-file=${TF_FILE} --auto-approve'
+                                } else {
+                                    sh 'echo "Terrafrom destroy cancelled by user."'
+                                }
                             }
                         }
-                    }    
+                    }        
                 }
             }
         }
