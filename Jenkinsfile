@@ -82,7 +82,7 @@ pipeline {
             }
             steps{
               dir("${TERRAFORM_DIR}") {
-                withCredentials([file(credentialsId: 'TFVARS_FILE', variable: 'TF_FILE')]) {  
+                withCredentials([file(credentialsId: 'TF_FILE', variable: 'TF_FILE')]) {  
                   sh """      
                     pwd
                     ls -l
@@ -116,7 +116,7 @@ pipeline {
             }
             steps {
                 dir("${TERRAFORM_DIR}") {
-                    withCredentials([file(credentialsId: 'TFVARS_FILE', variable: 'TF_FILE')]) { 
+                    withCredentials([file(credentialsId: 'TF_FILE', variable: 'TF_FILE')]) { 
                         sh """
                             terraform init
                             terraform fmt
@@ -151,7 +151,7 @@ pipeline {
             }
             steps{
                 dir("${TERRAFORM_DIR}") {
-                    withCredentials([file(credentialsId: 'TFVARS_FILE', variable: 'TF_FILE')]) { 
+                    withCredentials([file(credentialsId: 'TF_FILE', variable: 'TF_FILE')]) { 
                         script {
                             def userInput = input(
                                 id: 'Destroy Infra', message: 'Do you want to DESTROY all the resources?',
