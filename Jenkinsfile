@@ -49,7 +49,7 @@ pipeline {
             steps{
                 sh """
                     apt-get update && 
-                    apt-get install -y wget unzip git python python-pip docker.io &&
+                    apt-get install -y wget unzip git python3 python3-pip python-is-python3 docker.io &&
                     wget --version &&
                     docker --version &&
 
