@@ -69,7 +69,7 @@ pipeline {
 
                     # trivy
                     wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.65.0_Linux-64bit.deb &&
-                    dpkg -i trivy_0.50.2_Linux-64bit.deb &&
+                    dpkg -i trivy_0.65.0_Linux-64bit.deb &&
                     
                     # Clean up
                     apt-get clean && rm -rf /var/lib/apt/lists/* 
