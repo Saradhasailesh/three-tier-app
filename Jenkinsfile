@@ -67,9 +67,9 @@ pipeline {
                     terraform -version && 
                     rm -rf terraform_${TERRAFORM_VERSION}_linux_amd64.zip &&
 
-                    # tfsec
-                    curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash &&
-                    tfsec --version &&
+                    # trivy
+                    wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.65.0_Linux-64bit.deb &&
+                    dpkg -i trivy_0.50.2_Linux-64bit.deb &&
                     
                     # Clean up
                     apt-get clean && rm -rf /var/lib/apt/lists/* 
@@ -82,27 +82,31 @@ pipeline {
             }
             steps{
               dir("${TERRAFORM_DIR}") {
+                withCredentials([file(credentialsId: 'TFVARS_FILE', variable: 'TF_FILE')]) {  
+                  sh """      
+                    pwd
+                    ls -l
 
-                    sh "pwd"
-                    sh "ls -l"
+                    # init
+                    terraform init
 
-                    //  init
-                    sh "terraform init"
+                    # format
+                    terraform fmt
 
-                    // format
-                    sh "terraform fmt"
+                    # validate
+                    terraform validate
 
-                    // validate
-                    sh "terraform validate"
-
-                    sh  "tfsec . > tfsec-report.txt || true"
-                    archiveArtifacts artifacts: 'tfsec-report.txt',  fingerprint: true
+                    trivy config ./ > trivy-report.txt || true
 
                     // plan
 
-                    sh "terraform plan -out=tfplan.out"
-                    // Archive the plan
+                    terraform plan -var-file=${TF_FILE} -out=tfplan.out
+                    """
+
+                    // Archive 
+                    archiveArtifacts artifacts: 'trivy-report.txt',  fingerprint: true
                     archiveArtifacts artifacts: 'tfplan.out', fingerprint: true
+                    }
                 }
             }
         }
@@ -112,28 +116,30 @@ pipeline {
             }
             steps {
                 dir("${TERRAFORM_DIR}") {
-                    sh """
-                        terraform init
-                        terraform fmt
-                        terraform validate
-                        terraform plan -out=tfplan.out
-                        terraform show tfplan.out
-                    """
-                    // Manual approval
-                    script {
-                        def userInput = input(
-                            id:'ApproveApply', message:'Do you want to APPLY these Terraform changes?',
-                            parameters: [
-                                choice(choices: ['Apply', 'Cancel'], description: 'Choose what to do', name:'action')
-                            ]
-                        )
-                        if(userInput == 'Apply'){
-                            sh 'terraform apply --auto-approve tfplan.out'
-                        } else {
-                            sh 'echo "Terraform apply cancelled by user."'
-                        }
+                    withCredentials([file(credentialsId: 'TFVARS_FILE', variable: 'TF_FILE')]) { 
+                        sh """
+                            terraform init
+                            terraform fmt
+                            terraform validate
+                            terraform plan -var-file=${TF_FILE} -out=tfplan.out
+                            terraform show tfplan.out
+                        """
+                        // Manual approval
+                        script {
+                            def userInput = input(
+                                id:'ApproveApply', message:'Do you want to APPLY these Terraform changes?',
+                                parameters: [
+                                    choice(choices: ['Apply', 'Cancel'], description: 'Choose what to do', name:'action')
+                                ]
+                            )
+                            if(userInput == 'Apply'){
+                                sh 'terraform apply --auto-approve tfplan.out'
+                            } else {
+                                sh 'echo "Terraform apply cancelled by user."'
+                            }
 
-                    }
+                        }
+                    }    
                      
                 }
             
@@ -145,19 +151,21 @@ pipeline {
             }
             steps{
                 dir("${TERRAFORM_DIR}") {
-                    script {
-                        def userInput = input(
-                            id: 'Destroy Infra', message: 'Do you want to DESTROY all the resources?',
-                            parameters: [
-                                choice(choices: ['Destroy', 'Cancel'], description: 'Choose what to do', name: 'action')
-                            ]
-                        )
-                        if (userInput == 'Destroy') {
-                            sh 'terraform destroy --auto-approve'
-                        } else {
-                            sh 'echo "Terrafrom destroy cancelled by user."'
+                    withCredentials([file(credentialsId: 'TFVARS_FILE', variable: 'TF_FILE')]) { 
+                        script {
+                            def userInput = input(
+                                id: 'Destroy Infra', message: 'Do you want to DESTROY all the resources?',
+                                parameters: [
+                                    choice(choices: ['Destroy', 'Cancel'], description: 'Choose what to do', name: 'action')
+                                ]
+                            )
+                            if (userInput == 'Destroy') {
+                                sh 'terraform destroy -var-file=${TF_FILE} --auto-approve'
+                            } else {
+                                sh 'echo "Terrafrom destroy cancelled by user."'
+                            }
                         }
-                    }
+                    }    
                 }
             }
         }
