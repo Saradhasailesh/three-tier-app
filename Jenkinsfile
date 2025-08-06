@@ -58,7 +58,7 @@ pipeline {
                     . /opt/awscli-venv/bin/activate &&
                     pip install --upgrade pip && 
                     pip install awscli && 
-                    
+
                     # terraform
                     wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip &&
                     echo $PATH && 
@@ -76,12 +76,12 @@ pipeline {
                  """
             }
         }
-        stage ('provision Infrastructure') {
+        stage ('Terraform Plan') {
             when {
                 expression {params.TF_ACTION == 'plan'}
             }
             steps{
-              dir("${TERRAFOM_DIR}") {
+              dir("${TERRAFORM_DIR}") {
 
                     sh "pwd"
                     sh "ls -l"
@@ -94,6 +94,9 @@ pipeline {
 
                     // validate
                     sh "terraform validate"
+
+                    sh  "tfsec . > tfsec-report.txt"
+                    archiveArtifacts artifacts: 'tfsec-report.txt'
 
                     // plan
 
@@ -108,7 +111,7 @@ pipeline {
                 expression { params.TF_ACTION == 'apply'}
             }
             steps {
-                dir('terraform') {
+                dir("${TERRAFORM_DIR}") {
                     sh """
                         terraform init
                         terraform fmt
