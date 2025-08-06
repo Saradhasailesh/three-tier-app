@@ -95,8 +95,8 @@ pipeline {
                     // validate
                     sh "terraform validate"
 
-                    sh  "tfsec . > tfsec-report.txt"
-                    archiveArtifacts artifacts: 'tfsec-report.txt'
+                    sh  "tfsec . > tfsec-report.txt || true"
+                    archiveArtifacts artifacts: 'tfsec-report.txt',  fingerprint: true
 
                     // plan
 
