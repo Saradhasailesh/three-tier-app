@@ -97,17 +97,19 @@ pipeline {
                         # validate
                         terraform validate
 
-                        trivy config ./ > trivy-report.txt || true
+                        # security scan
+                        trivy config --format table --output trivy-report.txt . || true
 
                         # plan
 
                         terraform plan -var-file=${TF_FILE} -out=tfplan.out
+                        terraform show -no-color tfplan.out > tfplan.txt
                         """
                         }
                     }
                     // Archive 
                     archiveArtifacts artifacts: 'trivy-report.txt',  fingerprint: true
-                    archiveArtifacts artifacts: 'tfplan.out', fingerprint: true
+                    archiveArtifacts artifacts: 'tfplan.txt', fingerprint: true
                     
                 }
             }
