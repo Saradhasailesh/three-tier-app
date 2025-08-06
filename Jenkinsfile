@@ -9,6 +9,7 @@ pipeline {
         // IMAGE_NAME = "three-tier-app"
         // ECR_REGISTRY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
         // FULL_IMAGE_URI = "${ECR_REGISTRY_URI}/demo/${IMAGE_NAME}:${IMAGE_TAG}"
+        TERRAFORM_VERSION = '1.12.0'
         TERRAFORM_DIR = 'terraform'
         ACTION = "${params.TF_ACTION}" //'plan', 'apply', or 'destroy'
     }
