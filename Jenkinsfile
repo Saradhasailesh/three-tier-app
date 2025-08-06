@@ -134,7 +134,7 @@ pipeline {
                                 def userInput = input(
                                     id:'ApproveApply', message:'Do you want to APPLY these Terraform changes?',
                                     parameters: [
-                                        choice(choices: ['Apply', 'Cancel'], description: 'Choose what to do', name:'action')
+                                        choice(choices: ['Apply', 'Cancel'], description: 'Choose what to do?', name:'action')
                                     ]
                                 )
                                 if(userInput == 'Apply'){
@@ -161,9 +161,9 @@ pipeline {
                         withCredentials([file(credentialsId: 'TF_FILE', variable: 'TF_FILE')]) { 
                             script {
                                 def userInput = input(
-                                    id: 'Destroy Infra', message: 'Do you want to DESTROY all the resources?',
+                                    id: 'DestroyInfra', message: 'Do you want to delete all the resources?',
                                     parameters: [
-                                        choice(choices: ['Destroy', 'Cancel'], description: 'Choose what to do', name: 'action')
+                                        choice(choices: ['Destroy', 'Cancel'], description: 'Choose what to do?', name: 'action')
                                     ]
                                 )
                                 if (userInput == 'Destroy') {
