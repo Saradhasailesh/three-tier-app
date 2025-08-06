@@ -2,38 +2,155 @@ pipeline {
     agent any
 
     environment {
-        BUILD_TIMESTAMP = "${new Date().format('yyyyMMdd-HHmmss')}"
-        IMAGE_TAG = "${BUILD_TIMESTAMP}"
-        AWS_REGION = credentials('AWS_REGION')
-        AWS_ACCOUNT_ID = credentials('AWS_ACCOUNT_ID')
-        IMAGE_NAME = "three-tier-app"
-        ECR_REGISTRY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-        FULL_IMAGE_URI = "${ECR_REGISTRY_URI}/demo/${IMAGE_NAME}:${IMAGE_TAG}"
+        // BUILD_TIMESTAMP = "${new Date().format('yyyyMMdd-HHmmss')}"
+        // IMAGE_TAG = "${BUILD_TIMESTAMP}"
+        // AWS_REGION = credentials('AWS_REGION')
+        // AWS_ACCOUNT_ID = credentials('AWS_ACCOUNT_ID')
+        // IMAGE_NAME = "three-tier-app"
+        // ECR_REGISTRY_URI = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+        // FULL_IMAGE_URI = "${ECR_REGISTRY_URI}/demo/${IMAGE_NAME}:${IMAGE_TAG}"
+        TERRAFORM_DIR = 'terraform'
+        ACTION = "${params.TF_ACTION}" //'plan', 'apply', or 'destroy'
+    }
+
+    parameters {
+        choice (name: 'TF_ACTION', choices: ['plan', 'apply', 'destroy'], description: 'Select Terraform action')
     }
 
     stages {
-        stage ('build-image') {
-            steps {
-                script {
-                    sh "docker build --no-cache -t '${IMAGE_NAME}:${IMAGE_TAG}' ."
-                }
-            }
-        }
+        // stage ('build-image') {
+        //     steps {
+        //         script {
+        //             sh "docker build --no-cache -t '${IMAGE_NAME}:${IMAGE_TAG}' ."
+        //         }
+        //     }
+        // }
 
-        stage ('ecr login') {
-            steps {
-                withAWS(credentials:'AWS_credentials', region: "${AWS_REGION}"){
-                sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY_URI}"
+        // stage ('ecr login') {
+        //     steps {
+        //         withAWS(credentials:'AWS_credentials', region: "${AWS_REGION}"){
+        //         sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY_URI}"
+        //         }
+        //     }
+        // }
+        // stage ('Tag and push to ecr') {
+        //     steps {
+        //         script {
+        //              // Tag the image with the ECR URI
+        //             sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${FULL_IMAGE_URI}"
+        //             // Push the image to ECR
+        //             sh "docker push ${FULL_IMAGE_URI}"
+        //         }
+        //     }
+        // }
+
+        stage ('Install dependencies') {
+            steps{
+                sh """
+                    apt-get update && 
+                    apt-get install -y wget unzip git python python-pip docker.io &&
+                    wget --version &&
+                    docker --version &&
+
+                    # aws-cli
+                    pip install awscli &&
+
+                    # terraform
+                    wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip &&
+                    echo $PATH && 
+                    unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /usr/local/bin/ &&
+                    ls -l /usr/local/bin/ && 
+                    terraform -version && 
+                    rm -rf terraform_${TERRAFORM_VERSION}_linux_amd64.zip &&
+
+                    # tfsec
+                    curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash &&
+                    tfsec --version &&
+                    
+                    # Clean up
+                    apt-get clean && rm -rf /var/lib/apt/lists/* 
+                 """
+            }
+        }
+        stage ('provision Infrastructure') {
+            when {
+                expression {params.TF_ACTION == 'plan'}
+            }
+            steps{
+              dir("${TERRAFOM_DIR}") {
+
+                    sh "pwd"
+                    sh "ls -l"
+
+                    //  init
+                    sh "terraform init"
+
+                    // format
+                    sh "terraform fmt"
+
+                    // validate
+                    sh "terraform validate"
+
+                    // plan
+
+                    sh "terraform plan -out=tfplan.out"
+                    // Archive the plan
+                    archiveArtifacts artifacts: 'tfplan.out', fingerprint: true
                 }
             }
         }
-        stage ('Tag and push to ecr') {
+        stage ('Terraform Apply with Approval') {
+            when {
+                expression { params.TF_ACTION == 'apply'}
+            }
             steps {
-                script {
-                     // Tag the image with the ECR URI
-                    sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${FULL_IMAGE_URI}"
-                    // Push the image to ECR
-                    sh "docker push ${FULL_IMAGE_URI}"
+                dir('terraform') {
+                    sh """
+                        terraform init
+                        terraform fmt
+                        terraform validate
+                        terraform plan -out=tfplan.out
+                        terraform show tfplan.out
+                    """
+                    // Manual approval
+                    script {
+                        def userInput = input(
+                            id:'ApproveApply', message:'Do you want to APPLY these Terraform changes?',
+                            parameters: [
+                                choice(choices: ['Apply', 'Cancel'], description: 'Choose what to do', name:'action')
+                            ]
+                        )
+                        if(userInput == 'Apply'){
+                            sh 'terraform apply --auto-approve tfplan.out'
+                        } else {
+                            sh 'echo "Terraform apply cancelled by user."'
+                        }
+
+                    }
+                     
+                }
+            
+            }
+        }
+        stage ('Destroy Infrastructure') {
+            when {
+                expression { params.TF_ACTION == 'destroy'}
+            }
+            steps{
+                dir("${TERRAFORM_DIR}") {
+                    script {
+                        def userInput = input(
+                            id: 'Destroy Infra', message: 'Do you want to DESTROY all the resources?',
+                            parameters: [
+                                choice(choices: ['Destroy', 'Cancel'], description: 'Choose what to do', name: 'action')
+                            ]
+                        )
+                        if (userInput == 'Destroy') {
+                            sh 'terraform destroy --auto-approve'
+                        } else {
+                            sh 'echo "Terrafrom destroy cancelled by user."'
+                        }
+                    }
                 }
             }
         }
