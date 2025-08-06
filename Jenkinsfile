@@ -49,13 +49,16 @@ pipeline {
             steps{
                 sh """
                     apt-get update && 
-                    apt-get install -y wget unzip git python3 python3-pip python-is-python3 docker.io &&
+                    apt-get install -y wget unzip git python3 python3-pip python3-venv docker.io &&
                     wget --version &&
                     docker --version &&
 
                     # aws-cli
-                    pip install awscli &&
-
+                    python3 -m venv /opt/awscli-venv &&
+                    . /opt/awscli-venv/bin/activate &&
+                    pip install --upgrade pip && 
+                    pip install awscli && 
+                    
                     # terraform
                     wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip &&
                     echo $PATH && 
